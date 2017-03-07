@@ -807,7 +807,7 @@ static int add_again(struct strbuf *sb, struct chunk *chunk)
 	return 0;
 }
 
-static const char gpg_sig_armor_tail[] = "-----END PGP SIGNATURE-----";
+static const char gpg_sig_armor_tail[] = "-----END PGP MESSAGE-----";
 static const int gpg_sig_armor_tail_len = sizeof(gpg_sig_armor_tail) - 1;
 
 static void parse_commit_header(struct format_commit_context *context)
@@ -830,7 +830,7 @@ static void parse_commit_header(struct format_commit_context *context)
 		} else if (skip_prefix(msg + i, "committer ", &name)) {
 			context->committer.off = name - msg;
 			context->committer.len = msg + eol - name;
-		} else if (skip_prefix(msg + i, "gpgsig -----BEGIN PGP SIGNATURE-----", &name)) {
+		} else if (skip_prefix(msg + i, "gpgsig -----BEGIN PGP MESSAGE-----", &name)) {
 			context->signature.off = name - msg;
 		        armor_tail_end = strstr (name, gpg_sig_armor_tail);
 			sig_end = armor_tail_end + gpg_sig_armor_tail_len;
