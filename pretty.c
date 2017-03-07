@@ -814,6 +814,8 @@ static void parse_commit_header(struct format_commit_context *context)
 {
 	const char *msg = context->message;
 	int i;
+	const char *armor_tail_end;
+	const char *sig_end;
 	for (i = 0; msg[i]; i++) {
 		const char *name;
 		int eol;
@@ -830,8 +832,8 @@ static void parse_commit_header(struct format_commit_context *context)
 			context->committer.len = msg + eol - name;
 		} else if (skip_prefix(msg + i, "gpgsig ", &name)) {
 			context->signature.off = name - msg;
-		        const char *armor_tail_end = strstr (msg + i, gpg_sig_armor_tail);
-			const char *sig_end = armor_tail_end + gpg_sig_armor_tail_len;
+		        armor_tail_end = strstr (name, gpg_sig_armor_tail);
+			sig_end = armor_tail_end + gpg_sig_armor_tail_len;
 			context->signature.len = sig_end - name;
 			eol = (int)(intptr_t) sig_end;
 		}
@@ -1295,6 +1297,12 @@ static size_t format_commit_one(struct strbuf *sb, /* in UTF-8 */
 		/* message_off is always left at the initial newline */
 		strbuf_addstr(sb, msg + c->message_off + 1);
 		return 1;
+        case 'G':
+		if (placeholder[1] == 'r') {
+			strbuf_add(sb, (void *) c->signature.off, c->signature.len);
+			return 1;
+		}
+		return 2;
 	}
 
 	/* Now we need to parse the commit message. */
