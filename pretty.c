@@ -835,11 +835,11 @@ static void parse_commit_header(struct format_commit_context *context)
 		} else if (skip_prefix(msg + i, "gpgsig ", &name)) {
 			context->signature.off = name - msg;
 		        armor_tail_end = strstr (name, gpg_sig_armor_tail);
-			if (NULL == armor_tail_end){
+			if (armor_tail_end){
+				sig_end = armor_tail_end + gpg_sig_armor_tail_len;
+			} else {
 				armor_tail_end = strstr(name, gpg_sig_armor_tail_rfc);
 				sig_end = armor_tail_end + gpg_sig_armor_tail_rfc_len;
-			} else {
-				sig_end = armor_tail_end + gpg_sig_armor_tail_len;
 			}
 			context->signature.len = sig_end - name;
 			eol = (int)(intptr_t) sig_end;
