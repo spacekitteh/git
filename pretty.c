@@ -778,6 +778,7 @@ struct format_commit_context {
 	/* These offsets are relative to the start of the commit message. */
 	struct chunk author;
 	struct chunk committer;
+        struct chunk signature;
 	size_t message_off;
 	size_t subject_off;
 	size_t body_off;
@@ -806,11 +807,13 @@ static int add_again(struct strbuf *sb, struct chunk *chunk)
 	return 0;
 }
 
+static const char gpg_sig_armor_tail[] = "-----END PGP SIGNATURE-----";
+static const int gpg_sig_armor_tail_len = sizeof(gpg_sig_armor_tail) - 1;
+
 static void parse_commit_header(struct format_commit_context *context)
 {
 	const char *msg = context->message;
 	int i;
-
 	for (i = 0; msg[i]; i++) {
 		const char *name;
 		int eol;
@@ -825,6 +828,12 @@ static void parse_commit_header(struct format_commit_context *context)
 		} else if (skip_prefix(msg + i, "committer ", &name)) {
 			context->committer.off = name - msg;
 			context->committer.len = msg + eol - name;
+		} else if (skip_prefix(msg + i, "gpgsig ", &name)) {
+			context->signature.off = name - msg;
+		        const char *armor_tail_end = strstr (msg + i, gpg_sig_armor_tail);
+			const char *sig_end = armor_tail_end + gpg_sig_armor_tail_len;
+			context->signature.len = sig_end - name;
+			eol = (int)(intptr_t) sig_end;
 		}
 		i = eol;
 	}
